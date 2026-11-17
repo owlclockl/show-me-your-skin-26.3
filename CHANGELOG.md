@@ -2,7 +2,7 @@
 
 ## 2.0.4+26.3
 
-- Allow and build against CICADA 0.15.2+26.3, while remaining compatible with later 0.x releases. This accommodates the version Fabric reports in affected installs.
+- Accept CICADA 0.15.2 in Fabric's runtime metadata while compiling against the published 0.15.3+26.3 API, for installs whose CICADA JAR reports the older version.
 
 ## 2.0.3+26.3
 
