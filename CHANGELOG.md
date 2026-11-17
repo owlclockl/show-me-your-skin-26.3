@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.9+26.3
+
+- Fix pause-screen settings button placement by detecting its icon row above the vertical midpoint.
+
+## 2.0.8+26.3
+
+- Add the armor config icon to the pause screen's icon row as well as the title screen.
+
+## 2.0.7+26.3
+
+- Fix title-screen mixin access to inherited `Screen` dimensions and widget registration.
+
+## 2.0.6+26.3
+
+- Fix the title-screen button mixin so it invokes the inherited widget-registration method on Screen.
+
 ## 2.0.5+26.3
 
 - Added a main-menu icon button that opens the armor configuration screen.
