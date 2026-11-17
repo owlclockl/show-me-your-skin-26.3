@@ -44,7 +44,7 @@ public final class ArmorOpacitySubmitNodeCollector extends ArmorOpacitySubmitNod
 
   @Override
   public OrderedSubmitNodeCollector order(int order) {
-    return new OrderedArmorOpacitySubmitNodeCollector(delegate.order(order), alpha, cull);
+    return new OrderedArmorOpacitySubmitNodeCollector(((SubmitNodeCollector) delegate).order(order), alpha, cull);
   }
 }
 
