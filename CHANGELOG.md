@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.7+26.3
+
+- Fix title-screen mixin access to inherited `Screen` dimensions and widget registration.
+
 ## 2.0.6+26.3
 
 - Fix the title-screen button mixin so it invokes the inherited widget-registration method on Screen.
