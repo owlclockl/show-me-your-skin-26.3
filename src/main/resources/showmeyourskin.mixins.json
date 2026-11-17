@@ -2,25 +2,26 @@
   "required": true,
   "minVersion": "0.8",
   "package": "nl.enjarai.showmeyourskin.mixin",
-  "compatibilityLevel": "JAVA_17",
+  "compatibilityLevel": "JAVA_25",
   "mixins": [
+    "LivingEntityAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "client": [
-    "EntityRenderDispatcherMixin",
+    "ClientMannequinAccessor",
+    "ClientMannequinMixin",
+    "EntityRendererMixin",
+    "ItemStackRenderStateAccessor",
     "LivingEntityMixin",
     "LivingEntityRendererMixin",
-    "armor.ArmorFeatureRendererMixin",
-    "armor.EquipmentRendererMixin",
-    "armor.fabric.ArmorRendererMixin",
-    "elytra.CapeFeatureRendererMixin",
-    "elytra.ElytraFeatureRendererMixin",
-    "hat.HeadFeatureRendererMixin",
-    "hat.SkullBlockEntityRendererMixin",
-    "shield.BannerBlockEntityRendererMixin",
-    "shield.HeldItemFeatureRendererMixin",
-    "shield.ShieldModelRendererMixin"
+    "armor.EquipmentLayerRendererMixin",
+    "compat.wildfiregender.BothBreastsPhysicsMixin",
+    "compat.wildfiregender.GenderRenderStateMixin",
+    "hat.CustomHeadLayerMixin",
+    "hat.HudMixin",
+    "shield.ItemInHandLayerMixin",
+    "shield.ItemInHandRendererMixin"
   ]
 }
