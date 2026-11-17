@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.9+26.3
+
+- Fix pause-screen settings button placement by detecting its icon row above the vertical midpoint.
+
 ## 2.0.8+26.3
 
 - Add the armor config icon to the pause screen's icon row as well as the title screen.

@@ -25,7 +25,7 @@ public final class ConfigScreenMenuButton {
       .filter(AbstractWidget.class::isInstance)
       .map(AbstractWidget.class::cast)
       .filter(widget -> widget.getWidth() == IconButton.SIZE && widget.getHeight() == IconButton.SIZE)
-      .filter(widget -> widget.getY() > screenHeight / 2 && widget.getY() < screenHeight - IconButton.SIZE * 2)
+      .filter(widget -> widget.getY() < screenHeight - IconButton.SIZE * 2)
       .collect(Collectors.groupingBy(AbstractWidget::getY));
 
     List<AbstractWidget> iconRow = iconRows.values().stream()
