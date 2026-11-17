@@ -10,8 +10,8 @@
   ],
   "contact": {
     "homepage": "https://enjarai.dev/",
-    "sources": "https://github.com/enjarai/show-me-your-skin",
-    "issues": "https://github.com/enjarai/show-me-your-skin/issues"
+    "sources": "https://codeberg.org/enjarai/show-me-your-skin",
+    "issues": "https://codeberg.org/enjarai/show-me-your-skin/issues"
   },
 
   "license": "MIT",
@@ -41,15 +41,13 @@
   "accessWidener" : "showmeyourskin.accesswidener",
 
   "depends": {
-    "fabricloader": ">=0.15.0",
+    "fabricloader": ">=0.19.5",
     "fabric-api": "*",
-    "minecraft": ">=1.21.6- <=1.21.8",
-    "cicada": ">=0.14.1 <1.0.0",
+    "minecraft": ">=26.3 <26.4",
+    "java": ">=25",
+    "cicada": ">=0.15.3 <1.0.0",
     "cardinal-components-base": "*",
     "cardinal-components-entity": "*"
-  },
-  "breaks": {
-    "optifabric": "*"
   },
 
   "custom": {

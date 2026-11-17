@@ -1,14 +1,10 @@
 plugins {
-	id 'fabric-loom' version '1.10-SNAPSHOT'
+	id 'net.fabricmc.fabric-loom' version '1.19-SNAPSHOT'
 	id 'maven-publish'
-	id "me.modmuss50.mod-publish-plugin" version "0.4.4"
+	id "me.modmuss50.mod-publish-plugin" version "2.2.0"
 	id 'me.fallenbreath.yamlang' version '1.4.1'
 }
 
-sourceCompatibility = JavaVersion.VERSION_21
-targetCompatibility = JavaVersion.VERSION_21
-
-archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 
@@ -23,37 +19,39 @@ repositories {
 	maven { url = "https://maven.enjarai.dev/mirrors" }
 
 	// Mod Menu repository
-	maven { url "https://maven.terraformersmc.com" }
+	maven { url = "https://maven.terraformersmc.com" }
 
 	// Cardinal Components API
 	maven {
 		name = "Ladysnake Mods"
 		url = 'https://maven.ladysnake.org/releases'
 	}
+
+	// Female Gender Mod, for testing compat
+	maven {
+		url = "https://api.modrinth.com/maven"
+		content { includeGroup "maven.modrinth" }
+	}
 }
 
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${property("deps.minecraft")}"
-	mappings "net.fabricmc:yarn:${property("deps.yarn")}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${property("deps.fabricloader")}"
+	implementation "net.fabricmc:fabric-loader:${property("deps.fabricloader")}"
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${property("deps.fabric-api")}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${property("deps.fabric-api")}"
 
-	modImplementation("nl.enjarai:cicada-lib:${property("deps.cicada")}") {
+	implementation("nl.enjarai:cicada-lib:${property("deps.cicada")}") {
 		exclude group: "net.fabricmc.fabric-api"
 	}
 
 	// Mod Menu integration.
-	modImplementation "com.terraformersmc:modmenu:${property("deps.modmenu")}"
+	implementation "com.terraformersmc:modmenu:${property("deps.modmenu")}"
 
 	// Cardinal Components for shrimple™ server syncing.
-	modImplementation(include("org.ladysnake.cardinal-components-api:cardinal-components-base:${property("deps.cardinal-components-api")}"))
-	modImplementation(include("org.ladysnake.cardinal-components-api:cardinal-components-entity:${property("deps.cardinal-components-api")}"))
-
-	// Make it easier to test skin compat.
-//	modImplementation 'com.ptsmods:devlogin:2.1'
+	implementation(include("org.ladysnake.cardinal-components-api:cardinal-components-base:${property("deps.cardinal-components-api")}"))
+	implementation(include("org.ladysnake.cardinal-components-api:cardinal-components-entity:${property("deps.cardinal-components-api")}"))
 }
 
 processResources {
@@ -66,21 +64,20 @@ processResources {
 
 version = "$version+${property("deps.minecraft")}"
 
-tasks.withType(JavaCompile).configureEach {
-	// Minecraft 1.18 (1.18-pre2) upwards uses Java 17.
-	it.options.release = 21
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
 }
 
-java {
-	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-	// if it is present.
-	// If you remove this line, sources will not be generated.
-	withSourcesJar()
+tasks.withType(JavaCompile).configureEach {
+	options.release = 25
+	options.encoding = "UTF-8"
 }
 
 jar {
 	from("LICENSE") {
-		rename { "${it}_${project.archivesBaseName}"}
+		rename { "${it}_${project.archives_base_name}"}
 	}
 }
 
@@ -110,8 +107,29 @@ loom {
 	accessWidenerPath = file("src/main/resources/showmeyourskin.accesswidener")
 }
 
+fabricApi {
+	// Adds the `gametest` source set and `runClientGameTest`, which drives the real client and takes screenshots
+	configureTests {
+		createSourceSet = true
+		modId = "showmeyourskin-test"
+		enableGameTests = false
+		enableClientGameTests = true
+		eula = true
+	}
+}
+
+dependencies {
+	// Only loaded in the game test, to check the compat mixins
+	gametestImplementation "maven.modrinth:female-gender:${property("deps.female-gender")}"
+}
+
+loom.runs.matching { it.name == "clientGameTest" }.configureEach {
+	// Reports compat injections that silently stopped matching (they use require = 0)
+	vmArg "-Dmixin.debug.countInjections=true"
+}
+
 publishMods {
-	file = remapJar.archiveFile
+	file = jar.archiveFile
 	displayName = "${property('mod_version')} for ${property('deps.minecraft')}"
 	version = project.version
 	changelog = getRootProject().file("CHANGELOG.md").text
@@ -151,6 +169,8 @@ publishMods {
 		curseforge {
 			projectId = property('mod_curseforge')
 			accessToken = providers.gradleProperty('enjaraiCurseforgeToken').get()
+			client = true
+			server = true
 
 			if (min == max) {
 				minecraftVersions.add(min)
@@ -177,7 +197,6 @@ publishMods {
 		github {
 			repository = property('mod_github')
 			accessToken = providers.gradleProperty('enjaraiGithubToken').get()
-
 			commitish = property('git_branch')
 			tagName = project.version
 		}

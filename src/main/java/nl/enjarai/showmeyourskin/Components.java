@@ -9,15 +9,15 @@ import org.ladysnake.cca.api.v3.entity.EntityComponentInitializer;
 import org.ladysnake.cca.api.v3.entity.RespawnCopyStrategy;
 
 public class Components implements EntityComponentInitializer {
-    public static final ComponentKey<ArmorConfigComponent> ARMOR_CONFIG =
-            ComponentRegistry.getOrCreate(ShowMeYourSkin.id("armor_config"), ArmorConfigComponent.class);
+  public static final ComponentKey<ArmorConfigComponent> ARMOR_CONFIG =
+    ComponentRegistry.getOrCreate(ShowMeYourSkin.id("armor_config"), ArmorConfigComponent.class);
 
-    @Override
-    public void registerEntityComponentFactories(EntityComponentFactoryRegistry registry) {
-        registry.registerForPlayers(
-                ARMOR_CONFIG,
-                player -> new ArmorConfigComponent(ArmorConfig.VANILLA_VALUES),
-                RespawnCopyStrategy.ALWAYS_COPY
-        );
-    }
+  @Override
+  public void registerEntityComponentFactories(EntityComponentFactoryRegistry registry) {
+    registry.registerForPlayers(
+      ARMOR_CONFIG,
+      player -> new ArmorConfigComponent(ArmorConfig.VANILLA_VALUES.copy()),
+      RespawnCopyStrategy.ALWAYS_COPY
+    );
+  }
 }

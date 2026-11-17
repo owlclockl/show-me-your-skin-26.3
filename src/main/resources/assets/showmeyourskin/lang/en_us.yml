@@ -21,19 +21,21 @@ gui:
       global: Global
       synced: Synced
       overridden: Overridden
+      previewUnavailable: Preview Unavailable
       playerName: "%s"
       playerSelector: Armor Config
       piece:
-        head: "Helmet: %d%%"
-        chest: "Chestplate: %d%%"
-        legs: "Leggings: %d%%"
-        feet: "Boots: %d%%"
-        elytra: "Elytra: %d%%"
-        shield: "Shield: %d%%"
-        hat: "Hat: %d%%"
+        head: "Helmet"
+        chest: "Chestplate"
+        legs: "Leggings"
+        feet: "Boots"
+        elytra: "Elytra"
+        shield: "Shield"
+        hat: "Hat"
+      opacity: "Opacity: %s%%"
       glintTooltip: Enable enchantment glint
       combatTooltip: Automatically disable transparency in combat
-      nameTagTooltip: Show player name tag
+      nameTagTooltip: Show player title tag
       forceElytraWhenFlyingTooltip: Disable Elytra transparency while flying
       showElytraTooltip: Show Elytra
       shieldGlintTooltip: Show enchantment glint on shield

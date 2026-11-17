@@ -1,40 +1,92 @@
-# Automatically build the project and run any configured tests for every push
-# and submitted pull request. This can help catch issues that only occur on
-# certain platforms or Java versions, and provides a first line of defence
-# against bad commits.
-
+# Build the Minecraft 26.3 mod with the Java version required by the game.
 name: build
-on: [pull_request, push]
+on: [pull_request, push, workflow_dispatch]
 
 jobs:
   build:
-    strategy:
-      matrix:
-        # Use these Java versions
-        java: [
-            21,    # Current Java LTS & minimum supported by Minecraft
-        ]
-        # and run on both Linux and Windows
-        os: [ubuntu-20.04, windows-2022]
-    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
     steps:
-      - name: checkout repository
+      - name: Check out repository
         uses: actions/checkout@v4
-      - name: validate gradle wrapper
+
+      - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@v1
-      - name: setup jdk ${{ matrix.java }}
+
+      - name: Set up Java 25
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: ${{ matrix.java }}
-      - name: make gradle wrapper executable
-        if: ${{ runner.os != 'Windows' }}
+          java-version: '25'
+
+      - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
-      - name: build
-        run: ./gradlew build
-      - name: capture build artifacts
-        if: ${{ runner.os == 'Linux' && matrix.java == '17' }} # Only upload artifacts built from latest java on one OS
+
+      - name: Build mod and client game-test sources
+        shell: bash
+        run: |
+          set +e
+          ./gradlew --no-daemon build > build-output.log 2>&1
+          build_status=$?
+          cat build-output.log
+          if [ "$build_status" -ne 0 ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          text = Path("build-output.log").read_text(errors="replace")[-8000:]
+          escaped = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          print(f"::error title=Gradle build output::{escaped}")
+          PY
+            exit "$build_status"
+          fi
+
+      - name: Upload build artifacts
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Artifacts
-          path: build/libs/
+          name: show-me-your-skin-26.3
+          path: build/libs/*.jar
+          if-no-files-found: error
+
+
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/arena/ab18127d-show-me-your-skin-26-3' && contains(github.event.head_commit.message, '[release]')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out release metadata
+        uses: actions/checkout@v4
+
+      - name: Download built mod JARs
+        uses: actions/download-artifact@v4
+        with:
+          name: show-me-your-skin-26.3
+          path: build/libs
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          mod_version=$(awk -F= '$1 == "mod_version" {print $2}' gradle.properties)
+          minecraft_version=$(awk -F= '$1 == "deps.minecraft" {print $2}' gradle.properties)
+          release_tag="${mod_version}+${minecraft_version}"
+          artifact=$(find build/libs -maxdepth 1 -type f -name 'show-me-your-skin-*.jar' ! -name '*-sources.jar' -print -quit)
+          test -n "$artifact"
+          echo "Release asset: $artifact ($(stat -c%s "$artifact") bytes)"
+          sha256sum "$artifact"
+          set +e
+          gh release create "$release_tag" "$artifact" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Show Me Your Skin ${mod_version} for Minecraft ${minecraft_version}" --notes-file CHANGELOG.md > release-output.log 2>&1
+          release_status=$?
+          cat release-output.log
+          if [ "$release_status" -ne 0 ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          text = Path("release-output.log").read_text(errors="replace")[-4000:]
+          escaped = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          print(f"::error title=GitHub release output::{escaped}")
+          PY
+            exit "$release_status"
+          fi

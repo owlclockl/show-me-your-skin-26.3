@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "showmeyourskin-test",
+  "version": "1.0.0",
+  "name": "Show Me Your Skin! tests",
+  "environment": "client",
+  "entrypoints": {
+    "fabric-client-gametest": [
+      "nl.enjarai.showmeyourskin.test.ConfigScreenClientTest"
+    ]
+  },
+  "depends": {
+    "showmeyourskin": "*"
+  }
+}

@@ -1,90 +1,74 @@
 package nl.enjarai.showmeyourskin;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.entity.Entity;
+import net.fabricmc.fabric.api.client.rendering.v1.RenderStateDataKey;
+import net.minecraft.client.Minecraft;
 import nl.enjarai.cicada.api.conversation.ConversationManager;
-import nl.enjarai.cicada.api.cursed.DummyClientPlayerEntity;
-import nl.enjarai.cicada.api.render.RenderStateKey;
 import nl.enjarai.cicada.api.util.CicadaEntrypoint;
 import nl.enjarai.cicada.api.util.JsonSource;
 import nl.enjarai.showmeyourskin.client.ModKeyBindings;
 import nl.enjarai.showmeyourskin.config.ArmorConfig;
 import nl.enjarai.showmeyourskin.config.ModConfig;
-import nl.enjarai.showmeyourskin.gui.ClientConfigScreen;
-import nl.enjarai.showmeyourskin.gui.ConfigScreen;
-import nl.enjarai.showmeyourskin.gui.ServerIntegratedConfigScreen;
+import nl.enjarai.showmeyourskin.config.SyncedModConfig;
 import nl.enjarai.showmeyourskin.net.ConfigSyncPacket;
-import nl.enjarai.showmeyourskin.net.HandshakeClient;
 import nl.enjarai.showmeyourskin.net.SettingsUpdatePacket;
-import org.jetbrains.annotations.Nullable;
 
 public class ShowMeYourSkinClient implements ClientModInitializer, CicadaEntrypoint {
-	public static final HandshakeClient HANDSHAKE_CLIENT =
-			new HandshakeClient(config -> {});
-	public static final RenderStateKey<Entity> ENTITY_RENDER_STATE_KEY = RenderStateKey.of(
-			ShowMeYourSkin.id("entity"),
-			null
-	);
+  public static final RenderStateDataKey<ArmorConfig> ARMOR_CONFIG_KEY = RenderStateDataKey.create();
 
-	@Override
-	public void onInitializeClient() {
-		ModConfig.INSTANCE.ensureValid();
+  public static SyncedModConfig serverConfig = null;
 
-		ModKeyBindings.register();
-		ClientTickEvents.END_CLIENT_TICK.register(this::tick);
+  @Override
+  public void onInitializeClient() {
+    ModConfig.INSTANCE.ensureValid();
 
-		// Preload the dummy player for the config screen to avoid lag spikes later.
-		ClientLifecycleEvents.CLIENT_STARTED.register((client) -> DummyClientPlayerEntity.getInstance());
+    ModKeyBindings.register();
+    ClientTickEvents.END_CLIENT_TICK.register(this::tick);
 
-		initHandshake();
-	}
+    initNetworking();
+  }
 
-	private void initHandshake() {
-		ClientPlayConnectionEvents.INIT.register((handler, client) -> {
-			ClientPlayNetworking.registerReceiver(ConfigSyncPacket.PACKET_ID, (packet, ctx) -> {
-				ctx.responseSender().sendPacket(HANDSHAKE_CLIENT.handleConfigSync(packet));
-			});
-		});
+  private void initNetworking() {
+    ClientPlayNetworking.registerGlobalReceiver(ConfigSyncPacket.TYPE, (packet, context) -> {
+      serverConfig = packet.config();
+    });
 
-		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
-			HANDSHAKE_CLIENT.reset();
-		});
-	}
+    ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+      serverConfig = null;
+    });
+  }
 
-	public static void syncToServer(ArmorConfig config) {
-		var player = MinecraftClient.getInstance().player;
-		if (player != null) {
-			var component = player.getComponent(Components.ARMOR_CONFIG);
-			component.setConfig(config);
+  public static boolean canSyncToServer() {
+    return ClientPlayNetworking.canSend(SettingsUpdatePacket.TYPE);
+  }
 
-			ClientPlayNetworking.send(new SettingsUpdatePacket(config));
-		}
-	}
+  public static void syncToServer(ArmorConfig config) {
+    if (!canSyncToServer()) {
+      return;
+    }
 
-	public static ConfigScreen createConfigScreen(@Nullable Screen parent) {
-		if (HANDSHAKE_CLIENT.getConfig().isPresent()) {
-			return new ServerIntegratedConfigScreen(parent);
-		} else {
-			return new ClientConfigScreen(parent);
-		}
-	}
+    var player = Minecraft.getInstance().player;
+    if (player != null) {
+      var component = player.getComponent(Components.ARMOR_CONFIG);
+      component.setConfig(config);
 
-	public void tick(MinecraftClient client) {
-		ModKeyBindings.tick(client);
-	}
+      ClientPlayNetworking.send(new SettingsUpdatePacket(config));
+    }
+  }
 
-	@Override
-	public void registerConversations(ConversationManager conversationManager) {
-		conversationManager.registerSource(
-				JsonSource.fromUrl("https://raw.githubusercontent.com/enjarai/show-me-your-skin/master/src/main/resources/cicada/showmeyourskin/conversations.json")
-						.or(JsonSource.fromResource("cicada/showmeyourskin/conversations.json")),
-				ShowMeYourSkin.LOGGER::info
-		);
-	}
+  public void tick(Minecraft client) {
+    ModKeyBindings.tick(client);
+  }
+
+  @Override
+  public void registerConversations(ConversationManager conversationManager) {
+    conversationManager.registerSource(
+      JsonSource.fromUrl("https://raw.githubusercontent.com/enjarai/show-me-your-skin/master/src/main/resources/cicada/showmeyourskin/conversations.json")
+        .or(JsonSource.fromResource("cicada/showmeyourskin/conversations.json")),
+      ShowMeYourSkin.LOGGER::info
+    );
+  }
 }

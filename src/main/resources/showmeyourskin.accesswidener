@@ -1,8 +1,1 @@
-accessWidener   v1  named
-
-extendable  class   net/minecraft/item/ItemStack
-
-accessible  class   net/minecraft/client/render/RenderLayer$MultiPhaseParameters
-accessible  class   net/minecraft/client/render/RenderPhase$Texture
-
-accessible  class   net/minecraft/client/gui/screen/advancement/AdvancementTabType
+accessWidener   v1  official

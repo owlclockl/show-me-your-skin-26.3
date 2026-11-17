@@ -1,49 +1,51 @@
 package nl.enjarai.showmeyourskin.client;
 
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.text.Text;
-import nl.enjarai.showmeyourskin.ShowMeYourSkinClient;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import nl.enjarai.showmeyourskin.config.ModConfig;
-import org.lwjgl.glfw.GLFW;
+import nl.enjarai.showmeyourskin.gui.ArmorConfigScreen;
 
 public class ModKeyBindings {
-    public static KeyBinding OPEN_SETTINGS;
-    public static KeyBinding GLOBAL_TOGGLE;
+  public static KeyMapping OPEN_SETTINGS;
+  public static KeyMapping GLOBAL_TOGGLE;
 
-    public static void register() {
-        OPEN_SETTINGS = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.showmeyourskin.open_settings",
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_K,
-                "category.showmeyourskin.showmeyourskin"
-        ));
-        GLOBAL_TOGGLE = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.showmeyourskin.global_toggle",
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_J,
-                "category.showmeyourskin.showmeyourskin"
-        ));
-    }
+  private static final KeyMapping.Category KEYBIND_CATEGORY = new KeyMapping.Category(Identifier.withDefaultNamespace("category.showmeyourskin.showmeyourskin"));
 
-    public static void tick(MinecraftClient client) {
-        while (OPEN_SETTINGS.wasPressed()) {
-            client.setScreen(ShowMeYourSkinClient.createConfigScreen(null));
-        }
-        while (GLOBAL_TOGGLE.wasPressed()) {
-            ModConfig.INSTANCE.globalEnabled = !ModConfig.INSTANCE.globalEnabled;
-            ModConfig.INSTANCE.save();
-            if (client.player != null) {
-                client.player.sendMessage(
-                        Text.translatable(
-                                "key.showmeyourskin." +
-                                        (ModConfig.INSTANCE.globalEnabled ? "global_toggle.enable" : "global_toggle.disable")
-                        ),
-                        true
-                );
-            }
-        }
+  public static void register() {
+    OPEN_SETTINGS = KeyMappingHelper.registerKeyMapping(new KeyMapping(
+      "Open Settings",
+      InputConstants.Type.KEYBOARD,
+      InputConstants.KEY_K,
+      KEYBIND_CATEGORY
+    ));
+
+    GLOBAL_TOGGLE = KeyMappingHelper.registerKeyMapping(new KeyMapping(
+      "Global Toggle",
+      InputConstants.Type.KEYBOARD,
+      InputConstants.KEY_J,
+      KEYBIND_CATEGORY
+    ));
+  }
+
+  public static void tick(Minecraft client) {
+    while (OPEN_SETTINGS.consumeClick()) {
+      client.gui.setScreen(ArmorConfigScreen.createConfigScreen(null));
     }
+    while (GLOBAL_TOGGLE.consumeClick()) {
+      ModConfig.INSTANCE.globalEnabled = !ModConfig.INSTANCE.globalEnabled;
+      ModConfig.INSTANCE.save();
+      if (client.player != null) {
+        client.player.sendOverlayMessage(
+          Component.translatable(
+            "key.showmeyourskin." +
+              (ModConfig.INSTANCE.globalEnabled ? "global_toggle.enable" : "global_toggle.disable")
+          )
+        );
+      }
+    }
+  }
 }
