@@ -4,6 +4,8 @@ on: [pull_request, push, workflow_dispatch]
 
 jobs:
   build:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -45,3 +47,46 @@ jobs:
           name: show-me-your-skin-26.3
           path: build/libs/*.jar
           if-no-files-found: error
+
+
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/arena/ab18127d-show-me-your-skin-26-3' && contains(github.event.head_commit.message, '[release]')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out release metadata
+        uses: actions/checkout@v4
+
+      - name: Download built mod JARs
+        uses: actions/download-artifact@v4
+        with:
+          name: show-me-your-skin-26.3
+          path: build/libs
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          mod_version=$(awk -F= '$1 == "mod_version" {print $2}' gradle.properties)
+          minecraft_version=$(awk -F= '$1 == "deps.minecraft" {print $2}' gradle.properties)
+          release_tag="${mod_version}+${minecraft_version}"
+          artifact=$(find build/libs -maxdepth 1 -type f -name 'show-me-your-skin-*.jar' ! -name '*-sources.jar' -print -quit)
+          test -n "$artifact"
+          echo "Release asset: $artifact ($(stat -c%s "$artifact") bytes)"
+          sha256sum "$artifact"
+          set +e
+          gh release create "$release_tag" "$artifact" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Show Me Your Skin ${mod_version} for Minecraft ${minecraft_version}" --notes-file CHANGELOG.md > release-output.log 2>&1
+          release_status=$?
+          cat release-output.log
+          if [ "$release_status" -ne 0 ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          text = Path("release-output.log").read_text(errors="replace")[-4000:]
+          escaped = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          print(f"::error title=GitHub release output::{escaped}")
+          PY
+            exit "$release_status"
+          fi
