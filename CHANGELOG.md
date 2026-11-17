@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.6+26.3
+
+- Fix the title-screen button mixin so it invokes the inherited widget-registration method on Screen.
+
 ## 2.0.5+26.3
 
 - Added a main-menu icon button that opens the armor configuration screen.

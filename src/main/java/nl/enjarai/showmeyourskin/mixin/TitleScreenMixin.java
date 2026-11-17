@@ -2,8 +2,6 @@ package nl.enjarai.showmeyourskin.mixin;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Renderable;
-import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.network.chat.Component;
@@ -27,9 +25,6 @@ public abstract class TitleScreenMixin {
 
   @Shadow
   public int height;
-
-  @Shadow
-  protected abstract <T extends GuiEventListener & Renderable> T addRenderableWidget(T widget);
 
   @Inject(method = "init", at = @At("TAIL"))
   private void showMeYourSkin$addSettingsButton(CallbackInfo ci) {
@@ -64,7 +59,7 @@ public abstract class TitleScreenMixin {
       x = width - IconButton.SIZE - 4;
     }
 
-    addRenderableWidget(new IconButton(
+    ((ScreenAccessor) (Object) screen).showMeYourSkin$addRenderableWidget(new IconButton(
       x,
       y,
       Component.translatable("key.showmeyourskin.open_settings"),
