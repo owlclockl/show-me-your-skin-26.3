@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.8+26.3
+
+- Add the armor config icon to the pause screen's icon row as well as the title screen.
+
 ## 2.0.7+26.3
 
 - Fix title-screen mixin access to inherited `Screen` dimensions and widget registration.

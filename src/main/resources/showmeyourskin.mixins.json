@@ -17,6 +17,7 @@
     "LivingEntityMixin",
     "LivingEntityRendererMixin",
     "ScreenAccessor",
+    "PauseScreenMixin",
     "TitleScreenMixin",
     "armor.EquipmentLayerRendererMixin",
     "compat.wildfiregender.BothBreastsPhysicsMixin",
