@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.5+26.3
+
+- Added a main-menu icon button that opens the armor configuration screen.
+
 ## 2.0.4+26.3
 
 - Accept CICADA 0.15.2 in Fabric's runtime metadata while compiling against the published 0.15.3+26.3 API, for installs whose CICADA JAR reports the older version.
