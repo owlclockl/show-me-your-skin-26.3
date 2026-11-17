@@ -16,6 +16,7 @@
     "ItemStackRenderStateAccessor",
     "LivingEntityMixin",
     "LivingEntityRendererMixin",
+    "TitleScreenMixin",
     "armor.EquipmentLayerRendererMixin",
     "compat.wildfiregender.BothBreastsPhysicsMixin",
     "compat.wildfiregender.GenderRenderStateMixin",
