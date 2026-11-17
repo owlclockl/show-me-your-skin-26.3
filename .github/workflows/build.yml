@@ -22,7 +22,21 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build mod and client game-test sources
-        run: ./gradlew --no-daemon build
+        shell: bash
+        run: |
+          set +e
+          ./gradlew --no-daemon build > build-output.log 2>&1
+          build_status=$?
+          cat build-output.log
+          if [ "$build_status" -ne 0 ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          text = Path("build-output.log").read_text(errors="replace")[-8000:]
+          escaped = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          print(f"::error title=Gradle build output::{escaped}")
+          PY
+            exit "$build_status"
+          fi
 
       - name: Upload build artifacts
         if: success()
