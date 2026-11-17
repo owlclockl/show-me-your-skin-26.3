@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.4+26.3
+
+- Allow and build against CICADA 0.15.2+26.3, while remaining compatible with later 0.x releases. This accommodates the version Fabric reports in affected installs.
+
 ## 2.0.3+26.3
 
 - Ported the code and build to Minecraft 26.3, using Mojang's unobfuscated names, Java 25, Fabric Loader 0.19.5, and the 26.3 submit-based rendering APIs.
